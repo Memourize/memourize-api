@@ -42,7 +42,7 @@ class Api::DecksControllerTest < ActionDispatch::IntegrationTest
 
     json_response = JSON.parse(response.body)
     cards = json_response["data"]["cards"]
-    
+
     assert_equal 2, cards.length, "Expected 2 cards to be ready for review (card1 and card3)"
     card_ids = cards.map { |c| c["id"] }
     assert_includes card_ids, card1.id

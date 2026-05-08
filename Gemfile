@@ -56,5 +56,5 @@ gem "bcrypt", "~> 3.1"
 
 gem "active_model_serializers", "~> 0.10.15"
 
-gem 'pdf-reader'
-gem 'docx'
+gem "pdf-reader"
+gem "docx"

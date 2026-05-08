@@ -1,16 +1,16 @@
 # app/services/groq/generate_cards_service.rb
-require 'net/http'
-require 'json'
-require 'securerandom'
+require "net/http"
+require "json"
+require "securerandom"
 
 begin
-  require 'pdf/reader'
+  require "pdf/reader"
 rescue LoadError
   Rails.logger.warn("Gem 'pdf-reader' não instalada. Extração de PDF não funcionará.")
 end
 
 begin
-  require 'docx'
+  require "docx"
 rescue LoadError
   Rails.logger.warn("Gem 'docx' não instalada. Extração de DOCX não funcionará.")
 end
@@ -40,10 +40,10 @@ class GenerateCardsService
     @deck = @user.decks.create!(name: @deck_name)
 
     save_temp_file
-    
+
     # Esta é a grande mudança: extraímos o texto ou falhamos
     content = extract_text_from_file
-    
+
     # Trunca o conteúdo se for muito longo
     if content.length > MAX_CONTENT_LENGTH
       content = content[0...MAX_CONTENT_LENGTH]
@@ -113,7 +113,7 @@ class GenerateCardsService
     end
     text.join("\n").strip
   end
-  
+
   def extract_text_from_docx(path)
     doc = Docx::Document.open(path)
     doc.paragraphs.map(&:text).join("\n").strip
@@ -168,7 +168,7 @@ class GenerateCardsService
   def extract_json_array(text)
     # Tenta encontrar o JSON em qualquer lugar da resposta
     json_match = text.match(/(\[.*\])/m)&.captures&.first
-    
+
     # Se não encontrar, talvez a IA tenha retornado SÓ o JSON
     if json_match.nil?
       begin
@@ -178,7 +178,7 @@ class GenerateCardsService
         # Não era um JSON válido
       end
     end
-    
+
     raise "Não foi possível encontrar JSON na resposta da IA. Resposta: #{text}" unless json_match
     JSON.parse(json_match)
   end
