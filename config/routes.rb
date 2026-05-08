@@ -13,7 +13,7 @@ Rails.application.routes.draw do
     post "cards/:id/done", to: "cards#done"
 
     post "generate_cards", to: "generate_cards#create"
-    
+
     post "auth/google_oauth2/callback", to: "authentications#google_oauth2"
 
     resources :users, only: [ :create ]

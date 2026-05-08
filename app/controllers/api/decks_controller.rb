@@ -8,7 +8,10 @@ class Api::DecksController < ApplicationController
   end
 
   def show
-    render json: { data: @deck.as_json(include: :cards) }
+    @cards = @deck.cards
+    @cards = @cards.ready_to_review if params[:ready_to_review] == "true"
+
+    render json: { data: @deck.as_json.merge(cards: @cards) }
   end
 
   def create

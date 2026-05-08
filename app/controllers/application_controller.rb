@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::API
   private
 
+  JWT_EXPIRATION_TIMESTAMP = 24.hours.from_now.to_i
+
   def authenticate_user!
     render json: { error: "Não autorizado. Você precisa fazer login." }, status: :unauthorized unless current_user
   end
@@ -21,7 +23,7 @@ class ApplicationController < ActionController::API
   end
 
   def issue_jwt_token(user)
-    payload = { user_id: user.id, exp: 24.hours.from_now.to_i }
+    payload = { user_id: user.id, exp: JWT_EXPIRATION_TIMESTAMP }
     JWT.encode(payload, Rails.application.credentials.secret_key_base)
   end
 end
