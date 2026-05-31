@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_13_151634) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_31_032443) do
+  create_table "card_alternative_definitions", force: :cascade do |t|
+    t.integer "card_id", null: false
+    t.text "content", null: false
+    t.integer "position", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["card_id"], name: "index_card_alternative_definitions_on_card_id"
+  end
+
   create_table "card_reviews", force: :cascade do |t|
     t.integer "difficulty"
     t.datetime "date"
@@ -28,6 +37,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_13_151634) do
     t.integer "deck_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "definition_cursor", default: 0, null: false
     t.index ["deck_id"], name: "index_cards_on_deck_id"
   end
 
@@ -58,6 +68,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_13_151634) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "card_alternative_definitions", "cards"
   add_foreign_key "card_reviews", "cards"
   add_foreign_key "cards", "decks"
   add_foreign_key "decks", "users"
