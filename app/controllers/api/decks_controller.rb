@@ -8,10 +8,15 @@ class Api::DecksController < ApplicationController
   end
 
   def show
-    @cards = @deck.cards
-    @cards = @cards.ready_to_review if params[:ready_to_review] == "true"
+    if params[:ready_to_review] == "true"
+      cards = @deck.cards.ready_to_review.map do |card|
+        card.as_json(except: :definition_cursor).merge("definition" => card.current_definition)
+      end
+    else
+      cards = @deck.cards.as_json(except: :definition_cursor)
+    end
 
-    render json: { data: @deck.as_json.merge(cards: @cards) }
+    render json: { data: @deck.as_json.merge(cards: cards) }
   end
 
   def create

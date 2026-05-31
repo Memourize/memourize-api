@@ -48,4 +48,58 @@ class Api::DecksControllerTest < ActionDispatch::IntegrationTest
     assert_includes card_ids, card1.id
     assert_includes card_ids, card3.id
   end
+
+  test "show with ready_to_review returns the current view definition" do
+    deck = @user.decks.first
+    card = deck.cards.create!(term: "T", definition: "Original", last_view: 5.days.ago, last_difficulty: 2)
+    card.alternative_definitions.create!(content: "Alt 1", position: 1)
+    card.update!(definition_cursor: 1)
+
+    get api_deck_url(deck, ready_to_review: "true"), headers: authenticated_user(@user)
+    assert_response :success
+
+    cards = JSON.parse(response.body)["data"]["cards"]
+    returned = cards.find { |c| c["id"] == card.id }
+    assert_equal "Alt 1", returned["definition"]
+  end
+
+  test "show with ready_to_review falls back to original when cursor points nowhere" do
+    deck = @user.decks.first
+    card = deck.cards.create!(term: "T", definition: "Original", last_view: 5.days.ago, last_difficulty: 2)
+    card.update!(definition_cursor: 9)
+
+    get api_deck_url(deck, ready_to_review: "true"), headers: authenticated_user(@user)
+    assert_response :success
+
+    cards = JSON.parse(response.body)["data"]["cards"]
+    returned = cards.find { |c| c["id"] == card.id }
+    assert_equal "Original", returned["definition"]
+  end
+
+  test "show with ready_to_review never leaks alternative definitions or cursor" do
+    deck = @user.decks.first
+    card = deck.cards.create!(term: "T", definition: "Original", last_view: 5.days.ago, last_difficulty: 2)
+    card.alternative_definitions.create!(content: "Alt 1", position: 1)
+
+    get api_deck_url(deck, ready_to_review: "true"), headers: authenticated_user(@user)
+    cards = JSON.parse(response.body)["data"]["cards"]
+    returned = cards.find { |c| c["id"] == card.id }
+    assert_not returned.key?("alternative_definitions")
+    assert_not returned.key?("definition_cursor")
+  end
+
+  test "show without ready_to_review returns the original definition" do
+    deck = @user.decks.first
+    card = deck.cards.create!(term: "T", definition: "Original")
+    card.alternative_definitions.create!(content: "Alt 1", position: 1)
+    card.update!(definition_cursor: 1)
+
+    get api_deck_url(deck), headers: authenticated_user(@user)
+    assert_response :success
+
+    cards = JSON.parse(response.body)["data"]["cards"]
+    returned = cards.find { |c| c["id"] == card.id }
+    assert_equal "Original", returned["definition"]
+    assert_not returned.key?("definition_cursor")
+  end
 end
