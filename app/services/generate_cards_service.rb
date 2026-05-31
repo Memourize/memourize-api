@@ -26,6 +26,8 @@ class GenerateCardsService
   # O modelo 'llama-3.1-8b-instant' tem 131k tokens, mas vamos ser conservadores.
   MAX_CONTENT_LENGTH = 100_000 # 100 mil caracteres
 
+  ALTERNATIVES_PER_CARD = 2 # ajustável; conservador para o modelo gratuito
+
   def initialize(user:, file:, deck_name: nil)
     @user = user
     @file = file
@@ -131,13 +133,19 @@ class GenerateCardsService
 
       Gere **somente um JSON válido**, no formato:
       [
-        { "term": "termo 1", "definition": "definição do termo 1" },
-        { "term": "termo 2", "definition": "definição do termo 2" }
+        {
+          "term": "termo 1",
+          "definition": "definição do termo 1",
+          "alternatives": ["outra forma de explicar o termo 1", "mais uma visão do termo 1"]
+        }
       ]
 
       - Gere entre 5 e 15 cards em português.
       - Termos curtos e diretos.
       - Definições claras e concisas (até ~300 caracteres).
+      - Para cada card, gere #{ALTERNATIVES_PER_CARD} definições ALTERNATIVAS no campo "alternatives".
+      - Cada alternativa deve explicar o MESMO conceito do "definition" com outras palavras
+        ou outra abordagem (outra perspectiva), nunca um conceito diferente.
     PROMPT
 
     # O 'user_content' agora é sempre texto
@@ -150,7 +158,7 @@ class GenerateCardsService
         { role: "user", content: user_content }
       ],
       temperature: 0.5,
-      max_tokens: 2048 # Aumentei um pouco o max_tokens
+      max_tokens: 4096 # acomoda as definições alternativas
     }
 
     response = Net::HTTP.post(uri, body.to_json, headers)
@@ -186,11 +194,27 @@ class GenerateCardsService
   def create_cards(cards_data)
     cards_data.map do |card|
       next unless card["term"].present? && card["definition"].present? # Pula cards vazios
-      @deck.cards.create!(
+      new_card = @deck.cards.create!(
         term: card["term"].to_s.strip,
         definition: card["definition"].to_s.strip
       )
+      create_alternative_definitions(new_card, card["alternatives"])
+      new_card
     end.compact # Remove os nils
+  end
+
+  # Best-effort: alternatives never break card creation.
+  def create_alternative_definitions(card, alternatives)
+    return unless alternatives.is_a?(Array)
+
+    position = 0
+    alternatives.each do |content|
+      text = content.to_s.strip
+      next if text.empty?
+
+      position += 1
+      card.alternative_definitions.create!(content: text, position: position)
+    end
   end
 
   def cleanup_tmp_file
