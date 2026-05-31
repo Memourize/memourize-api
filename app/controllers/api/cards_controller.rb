@@ -36,6 +36,7 @@ class Api::CardsController < ApplicationController
       begin
         @card_review = @card.card_reviews.create(difficulty: params[:difficulty], date: Date.today)
         @card.update(last_difficulty: params[:difficulty], last_view: Date.today)
+        @card.advance_definition_cursor!
         head :ok
       end
     rescue StandardError => e

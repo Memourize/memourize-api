@@ -42,4 +42,37 @@ class Api::CardsControllerTest < ActionDispatch::IntegrationTest
     delete "/api/cards/#{@card.id}", headers: authenticated_user(@user)
     assert_response :success
   end
+
+  test "done advances the definition cursor when the card has alternatives" do
+    @card.alternative_definitions.create!(content: "Alt 1", position: 1)
+    @card.alternative_definitions.create!(content: "Alt 2", position: 2)
+
+    post "/api/cards/#{@card.id}/done",
+      params: { difficulty: 2 },
+      headers: authenticated_user(@user),
+      as: :json
+    assert_response :success
+    assert_equal 1, @card.reload.definition_cursor
+
+    post "/api/cards/#{@card.id}/done",
+      params: { difficulty: 2 },
+      headers: authenticated_user(@user),
+      as: :json
+    assert_equal 2, @card.reload.definition_cursor
+
+    post "/api/cards/#{@card.id}/done",
+      params: { difficulty: 2 },
+      headers: authenticated_user(@user),
+      as: :json
+    assert_equal 0, @card.reload.definition_cursor
+  end
+
+  test "done keeps cursor at 0 when the card has no alternatives" do
+    post "/api/cards/#{@card.id}/done",
+      params: { difficulty: 2 },
+      headers: authenticated_user(@user),
+      as: :json
+    assert_response :success
+    assert_equal 0, @card.reload.definition_cursor
+  end
 end
