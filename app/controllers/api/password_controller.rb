@@ -1,4 +1,6 @@
 class Api::PasswordController < ApplicationController
+  before_action :authenticate_user!, only: [ :update ]
+
   def forgot
     email = forgot_params
     @user = User.find_by(email: email)
@@ -50,6 +52,20 @@ class Api::PasswordController < ApplicationController
     end
   end
 
+  def update
+    current_password, password = update_params
+
+    unless current_user.authenticate(current_password)
+      return render json: { errors: [ "Senha atual incorreta" ] }, status: :unprocessable_entity
+    end
+
+    if current_user.update(password: password)
+      head :ok
+    else
+      render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def validate(email, code)
@@ -88,5 +104,9 @@ class Api::PasswordController < ApplicationController
 
   def reset_params
     params.require([ :email, :code, :password ])
+  end
+
+  def update_params
+    params.require([ :current_password, :password ])
   end
 end
