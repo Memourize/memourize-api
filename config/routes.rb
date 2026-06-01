@@ -16,6 +16,9 @@ Rails.application.routes.draw do
 
     post "auth/google_oauth2/callback", to: "authentications#google_oauth2"
 
+    get "terms/acceptance", to: "terms_acceptances#show"
+    post "terms/acceptance", to: "terms_acceptances#create"
+
     resources :users, only: [ :create ]
 
     post "/login", to: "sessions#create"
