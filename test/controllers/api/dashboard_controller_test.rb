@@ -22,7 +22,7 @@ class Api::DashboardControllerTest < ActionDispatch::IntegrationTest
   end
 
   def counts_by_difficulty(body)
-    body["cards_by_difficulty"].to_h { |b| [b["difficulty"], b["count"]] }
+    body["cards_by_difficulty"].to_h { |b| [ b["difficulty"], b["count"] ] }
   end
 
   test "returns the four difficulty buckets and totals for all decks" do
