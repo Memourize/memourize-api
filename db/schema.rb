@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_31_032443) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_01_120000) do
   create_table "card_alternative_definitions", force: :cascade do |t|
     t.integer "card_id", null: false
     t.text "content", null: false
@@ -59,6 +59,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_31_032443) do
     t.index ["user_id"], name: "index_password_resets_on_user_id"
   end
 
+  create_table "terms_acceptances", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "version", null: false
+    t.datetime "accepted_at", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "version"], name: "index_terms_acceptances_on_user_id_and_version"
+    t.index ["user_id"], name: "index_terms_acceptances_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "full_name"
     t.string "email"
@@ -73,4 +85,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_31_032443) do
   add_foreign_key "cards", "decks"
   add_foreign_key "decks", "users"
   add_foreign_key "password_resets", "users"
+  add_foreign_key "terms_acceptances", "users"
 end

@@ -4,7 +4,15 @@ Rails.application.routes.draw do
   namespace :api do
     get "dashboard", to: "dashboard#index"
 
-    resources :decks
+    resources :decks do
+      member do
+        get :export
+      end
+
+      collection do
+        post :import
+      end
+    end
 
     get "decks/:deck_id/cards", to: "cards#index"
     post "decks/:deck_id/cards", to: "cards#create"

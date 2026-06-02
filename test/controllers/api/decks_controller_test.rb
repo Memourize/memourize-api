@@ -102,4 +102,113 @@ class Api::DecksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Original", returned["definition"]
     assert_not returned.key?("definition_cursor")
   end
+
+  test "should export deck as shareable json" do
+    deck = @user.decks.first
+    card = deck.cards.create!(term: "Hello", definition: "Ola")
+    card.alternative_definitions.create!(content: "Cumprimento", position: 1)
+
+    get "/api/decks/#{deck.id}/export", headers: authenticated_user(@user)
+    assert_response :success
+
+    json_response = JSON.parse(response.body)["data"]
+    assert_equal "memourize.deck", json_response["format"]
+    assert_equal 1, json_response["version"]
+    assert_equal "Deck", json_response["deck"]["name"]
+    assert_equal [
+      {
+        "term" => "Hello",
+        "definition" => "Ola",
+        "alternative_definitions" => [
+          { "content" => "Cumprimento", "position" => 1 }
+        ]
+      }
+    ], json_response["deck"]["cards"]
+  end
+
+  test "should export the requested deck only" do
+    first_deck = @user.decks.first
+    first_deck.update!(name: "Deck 1")
+    first_deck.cards.create!(term: "T1", definition: "D1")
+
+    second_deck = @user.decks.create!(name: "Deck 2")
+    second_deck.cards.create!(term: "T2", definition: "D2")
+
+    get "/api/decks/#{second_deck.id}/export", headers: authenticated_user(@user)
+    assert_response :success
+
+    json_response = JSON.parse(response.body)["data"]
+    assert_equal "Deck 2", json_response["deck"]["name"]
+    assert_equal [ "T2" ], json_response["deck"]["cards"].map { |card| card["term"] }
+  end
+
+  test "should import shared deck json for authenticated user" do
+    other_user = User.create!(
+      full_name: "Jane Doe",
+      email: "jane@example.com",
+      password: "password"
+    )
+
+    payload = {
+      format: "memourize.deck",
+      version: 1,
+      deck: {
+        name: "Deck compartilhado",
+        cards: [
+          {
+            term: "T1",
+            definition: "D1",
+            alternative_definitions: [
+              { content: "Alt 1", position: 1 },
+              { content: "Alt 2", position: 2 }
+            ]
+          },
+          { term: "T2", definition: "D2" }
+        ]
+      }
+    }
+    original_user_decks_count = @user.decks.count
+
+    post "/api/decks/import",
+      params: payload,
+      headers: authenticated_user(other_user),
+      as: :json
+
+    assert_response :created
+
+    imported_deck = other_user.decks.find_by!(name: "Deck compartilhado")
+    assert_equal 2, imported_deck.cards.count
+    assert_equal [ "T1", "T2" ], imported_deck.cards.order(:id).pluck(:term)
+    assert_equal [ "Alt 1", "Alt 2" ], imported_deck.cards.order(:id).first.alternative_definitions.order(:position).pluck(:content)
+    assert_equal original_user_decks_count, @user.decks.reload.count
+  end
+
+  test "should reject data wrapped import json" do
+    other_user = User.create!(
+      full_name: "Jane Doe",
+      email: "jane-export@example.com",
+      password: "password"
+    )
+    exported_deck = @user.decks.first
+    exported_deck.cards.create!(term: "T1", definition: "D1")
+
+    get "/api/decks/#{exported_deck.id}/export", headers: authenticated_user(@user)
+    exported_payload = JSON.parse(response.body)
+
+    post "/api/decks/import",
+      params: exported_payload,
+      headers: authenticated_user(other_user),
+      as: :json
+
+    assert_response :unprocessable_entity
+  end
+
+  test "should reject invalid import json" do
+    post "/api/decks/import",
+      params: { deck: { name: "", cards: [ { term: "T1" } ] } },
+      headers: authenticated_user(@user),
+      as: :json
+
+    assert_response :unprocessable_entity
+  end
 end
