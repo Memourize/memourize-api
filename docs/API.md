@@ -313,6 +313,105 @@ Remove um deck e todos seus cards.
 
 ---
 
+#### `GET /api/decks/:id/export`
+Exporta um deck do usuário autenticado em JSON compartilhável.
+
+**Autenticação:** Requerida
+
+**Parâmetros de URL:**
+- `id` (integer) - ID do deck
+
+**Resposta de Sucesso (200):**
+```json
+{
+  "data": {
+    "format": "memourize.deck",
+    "version": 1,
+    "deck": {
+      "name": "Inglês - Básico",
+      "cards": [
+        {
+          "term": "Hello",
+          "definition": "Olá",
+          "alternative_definitions": [
+            {
+              "content": "Cumprimento usado ao encontrar alguém.",
+              "position": 1
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+---
+
+#### `POST /api/decks/import`
+Importa um deck a partir do JSON compartilhável exportado por outro usuário.
+
+Use como corpo da requisição o conteúdo interno de `data` retornado pelo export.
+
+**Autenticação:** Requerida
+
+**Corpo da Requisição:**
+```json
+{
+  "format": "memourize.deck",
+  "version": 1,
+  "deck": {
+    "name": "Inglês - Básico",
+    "cards": [
+      {
+        "term": "Hello",
+        "definition": "Olá",
+        "alternative_definitions": [
+          {
+            "content": "Cumprimento usado ao encontrar alguém.",
+            "position": 1
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Resposta de Sucesso (201):**
+```json
+{
+  "data": {
+    "id": 3,
+    "name": "Inglês - Básico",
+    "user_id": 2,
+    "created_at": "2025-11-03T10:00:00.000Z",
+    "updated_at": "2025-11-03T10:00:00.000Z",
+    "cards": [
+      {
+        "id": 5,
+        "term": "Hello",
+        "definition": "Olá",
+        "deck_id": 3,
+        "last_difficulty": null,
+        "last_view": null,
+        "created_at": "2025-11-03T10:00:00.000Z",
+        "updated_at": "2025-11-03T10:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+**Resposta de Erro (422):**
+```json
+{
+  "errors": ["Card 1 deve ter term e definition"]
+}
+```
+
+---
+
 ### Cards
 
 #### `GET /api/decks/:deck_id/cards`
@@ -761,4 +860,3 @@ Para mais informações, consulte o repositório:
 ---
 
 **Última atualização:** Novembro 2025
-

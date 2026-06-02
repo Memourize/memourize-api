@@ -25,6 +25,8 @@
 | POST | `/api/decks` | Criar novo deck |
 | PATCH | `/api/decks/:id` | Atualizar deck |
 | DELETE | `/api/decks/:id` | Deletar deck |
+| GET | `/api/decks/:id/export` | Exportar deck como JSON compartilhável |
+| POST | `/api/decks/import` | Importar deck a partir de JSON compartilhável |
 
 ### Cards
 | Método | Rota | Descrição |
@@ -155,4 +157,3 @@ POST /api/cards/{card.id}/done (com JWT)
 ---
 
 Para documentação completa, consulte [API.md](./API.md)
-
