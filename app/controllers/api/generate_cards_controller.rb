@@ -38,6 +38,6 @@ class Api::GenerateCardsController < ApplicationController
   MAX_FILE_SIZE = 10.megabytes
 
   def generate_cards_params
-    params.expect(:file, :name)
+    [ params.require(:file), params[:name].presence ]
   end
 end
