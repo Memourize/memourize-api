@@ -33,16 +33,13 @@ class Api::CardsController < ApplicationController
 
   def done
     ActiveRecord::Base.transaction do
-      begin
-        @card_review = @card.card_reviews.create(difficulty: params[:difficulty], date: Date.today)
-        @card.update(last_difficulty: params[:difficulty], last_view: Date.today)
-        @card.advance_definition_cursor!
-        head :ok
-      end
-    rescue StandardError => e
-      raise ActiveRecord::Rollback
-      render json: { errors: [ e.message ] }, status: :unprocessable_entity
+      @card.card_reviews.create!(difficulty: params[:difficulty], date: Date.today)
+      @card.update!(last_difficulty: params[:difficulty], last_view: Date.today)
+      @card.advance_definition_cursor!
     end
+    head :ok
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
   end
 
   private
