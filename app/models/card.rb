@@ -1,6 +1,6 @@
 class Card < ApplicationRecord
   belongs_to :deck
-  has_many :card_reviews
+  has_many :card_reviews, dependent: :destroy
   has_many :alternative_definitions,
            class_name: "CardAlternativeDefinition",
            dependent: :destroy
