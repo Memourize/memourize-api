@@ -4,7 +4,12 @@ class Api::DecksController < ApplicationController
 
   def index
     @decks = current_user.decks
-    render json: { data: @decks.as_json(include: :cards) }
+    render json: {
+      data: @decks.map do |deck|
+        deck.as_json(include: :cards)
+            .merge("cards_to_review" => deck.cards.ready_to_review.count)
+      end
+    }
   end
 
   def show

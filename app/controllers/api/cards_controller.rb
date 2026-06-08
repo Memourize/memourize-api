@@ -34,7 +34,7 @@ class Api::CardsController < ApplicationController
   def done
     ActiveRecord::Base.transaction do
       @card.card_reviews.create!(difficulty: params[:difficulty], date: Date.today)
-      @card.update!(last_difficulty: params[:difficulty], last_view: Date.today)
+      @card.update!(last_difficulty: params[:difficulty], last_view: Time.current)
       @card.advance_definition_cursor!
     end
     head :ok

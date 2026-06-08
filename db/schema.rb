@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_01_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_07_120000) do
   create_table "card_alternative_definitions", force: :cascade do |t|
     t.integer "card_id", null: false
     t.text "content", null: false
@@ -33,7 +33,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_01_120000) do
     t.string "term"
     t.string "definition"
     t.integer "last_difficulty"
-    t.date "last_view"
+    t.datetime "last_view"
     t.integer "deck_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

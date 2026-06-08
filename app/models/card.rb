@@ -5,10 +5,14 @@ class Card < ApplicationRecord
            class_name: "CardAlternativeDefinition",
            dependent: :destroy
 
+  # DEMO: intervalo de revisão em MINUTOS (em vez de dias) para a apresentação.
+  # Para voltar ao comportamento normal, troque para "days".
+  REVIEW_INTERVAL_UNIT = "minutes".freeze
+
   scope :ready_to_review, -> {
     where(last_difficulty: nil)
       .or(where(last_view: nil))
-      .or(where("date(last_view, '+' || last_difficulty || ' days') <= ?", Date.today.to_s))
+      .or(where("datetime(last_view, '+' || last_difficulty || ' #{REVIEW_INTERVAL_UNIT}') <= datetime('now')"))
   }
 
   # Total number of "views": the original definition plus each alternative.

@@ -28,12 +28,11 @@ class Api::DecksControllerTest < ActionDispatch::IntegrationTest
 
   test "should show deck with ready_to_review filter" do
     deck = @user.decks.first
-    # Card ready to review (last_view was 5 days ago, last_difficulty was 2)
-    # 2 days after last_view is 3 days ago, which is <= today.
-    card1 = deck.cards.create!(term: "T1", definition: "D1", last_view: 5.days.ago, last_difficulty: 2)
-    # Card NOT ready to review (last_view was yesterday, last_difficulty was 5)
-    # 5 days after last_view is in 4 days, which is > today.
-    card2 = deck.cards.create!(term: "T2", definition: "D2", last_view: 1.day.ago, last_difficulty: 5)
+    # Intervalo de revisão está em MINUTOS (Card::REVIEW_INTERVAL_UNIT).
+    # Card ready to review: visto há 5 min, intervalo 2 min => vence há 3 min, <= agora.
+    card1 = deck.cards.create!(term: "T1", definition: "D1", last_view: 5.minutes.ago, last_difficulty: 2)
+    # Card NOT ready to review: visto há 10s, intervalo 5 min => vence em ~5 min, > agora.
+    card2 = deck.cards.create!(term: "T2", definition: "D2", last_view: 10.seconds.ago, last_difficulty: 5)
     # Card with nil last_view or last_difficulty (should now be included when filtered)
     card3 = deck.cards.create!(term: "T3", definition: "D3")
 
