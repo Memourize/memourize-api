@@ -5,9 +5,10 @@ class Card < ApplicationRecord
            class_name: "CardAlternativeDefinition",
            dependent: :destroy
 
-  # DEMO: intervalo de revisão em MINUTOS (em vez de dias) para a apresentação.
+  # DEMO: intervalo de revisão em SEGUNDOS (em vez de dias) para a apresentação
+  # ao vivo — o card volta para a revisão quase na hora.
   # Para voltar ao comportamento normal, troque para "days".
-  REVIEW_INTERVAL_UNIT = "minutes".freeze
+  REVIEW_INTERVAL_UNIT = "seconds".freeze
 
   scope :ready_to_review, -> {
     where(last_difficulty: nil)
